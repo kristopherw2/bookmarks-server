@@ -34,6 +34,12 @@ bookmarksRouter
       }
     }
     const { title, url, description, rating } = req.body
+    const newBookMark = {
+      title,
+      url,
+      description,
+      rating
+    }
 
     if (!Number.isInteger(rating) || rating < 0 || rating > 5) {
       logger.error(`Invalid rating '${rating}' supplied`)
@@ -45,9 +51,20 @@ bookmarksRouter
       return res.status(400).send(`'url' must be a valid URL`)
     }
 
-    const bookmark = { id: uuid(), title, url, description, rating }
+    BookmarksService.insertBookmark(
+      req.app.get('db'),
+      newBookMark
+    )
+    .then(bookmark => {
+      res
+        .status()
+        .location(`/bookmarks/${bookmark.id}`)
+        .json(bookmark)
+    })
 
-    store.bookmarks.push(bookmark)
+    //const bookmark = { id: uuid(), title, url, description, rating }
+
+    //store.bookmarks.push(bookmark)
 
     logger.info(`Bookmark with id ${bookmark.id} created`)
     res

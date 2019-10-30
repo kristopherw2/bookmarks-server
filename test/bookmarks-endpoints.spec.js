@@ -1,3 +1,4 @@
+require('dotenv').config()
 const knex = require('knex')
 const fixtures = require('./bookmarks-fixtures')
 const app = require('../src/app')
@@ -124,6 +125,7 @@ describe('Bookmarks Endpoints', () => {
 
   // TODO: update to use db
   describe('DELETE /bookmarks/:id', () => {
+    context(`Given there are bookmarks`, () => {
     it('removes the bookmark by ID from the store', () => {
       const secondBookmark = store.bookmarks[1]
       const expectedBookmarks = store.bookmarks.filter(s => s.id !== secondBookmark.id)
@@ -135,6 +137,7 @@ describe('Bookmarks Endpoints', () => {
           expect(store.bookmarks).to.eql(expectedBookmarks)
         })
     })
+  })
 
     it(`returns 404 whe bookmark doesn't exist`, () => {
       return supertest(app)
@@ -229,10 +232,16 @@ describe('Bookmarks Endpoints', () => {
           expect(res.body.description).to.eql(newBookmark.description)
           expect(res.body.rating).to.eql(newBookmark.rating)
           expect(res.body.id).to.be.a('string')
+          expect(res.headers.location).to.eql(`/bookmarks/${res.body.id}`)
         })
-        .then(res => {
-          expect(store.bookmarks[store.bookmarks.length - 1]).to.eql(res.body)
-        })
+        // .then(res => {
+        //   expect(store.bookmarks[store.bookmarks.length - 1]).to.eql(res.body)
+        // })
+        .then(postRes =>
+          supertest(app)
+            .get(`/bookmarks/${postRes.body.id}`)
+            .expect(postRes.body)
+        )
     })
   })
 })
